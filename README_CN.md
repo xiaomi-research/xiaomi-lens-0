@@ -2,11 +2,11 @@
 <h1 align="center">Xiaomi-Lens-0</h1>
 <p><b>在紧凑的 4B 多模态模型中实现像素级定位与视觉推理。</b></p>
 <p>
-  <a href="https://seerray-lab.github.io/Xiaomi-Lens-0/"><img src="https://img.shields.io/badge/Project-Page-FF6900" alt="项目主页"></a>
+  <a href="https://xiaomi-research.github.io/xiaomi-lens-0/"><img src="https://img.shields.io/badge/Project-Page-FF6900" alt="项目主页"></a>
   <a href="https://arxiv.org/abs/2610.23279"><img src="https://img.shields.io/badge/arXiv-2610.23279-b31b1b" alt="arXiv"></a>
-  <a href="https://huggingface.co/SeerRay-Lab/Xiaomi-Lens-0"><img src="https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?logo=huggingface&amp;logoColor=FFD21E" alt="Hugging Face 模型"></a>
+  <a href="https://huggingface.co/xiaomi-research/Xiaomi-Lens-0"><img src="https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?logo=huggingface&amp;logoColor=FFD21E" alt="Hugging Face 模型"></a>
   <a href="https://modelscope.cn/models/SeerRay-Lab/Xiaomi-Lens-0"><img src="https://img.shields.io/badge/ModelScope-Model-624AFF" alt="ModelScope 模型"></a>
-  <a href="https://github.com/SeerRay-Lab/Xiaomi-Lens-0"><img src="https://img.shields.io/badge/GitHub-SeerRay--Lab%2FXiaomi--Lens--0-181717?logo=github" alt="GitHub"></a>
+  <a href="https://github.com/xiaomi-research/xiaomi-lens-0"><img src="https://img.shields.io/badge/GitHub-xiaomi--research%2Fxiaomi--lens--0-181717?logo=github" alt="GitHub"></a>
   <a href="https://huggingface.co/datasets/SeerRay-Lab/LensBench"><img src="https://img.shields.io/badge/LensBench-Dataset-e3ad25?logo=huggingface&amp;logoColor=white" alt="LensBench 数据集"></a>
   <a href="#-引用"><img src="https://img.shields.io/badge/BibTeX-cite-d6336c" alt="引用"></a>
 </p>
@@ -16,9 +16,9 @@
 
 Xiaomi-Lens-0 是一个 4B 多模态大语言模型，通过像素级监督学习共享视觉骨干网络。模型基于 Qwen3.5-4B，使用轻量级解码器将每个生成的 `<|mask|>` token 解码为分割掩码，让模型在输出文字回答的同时，也能在最终答案或推理过程中指出所描述的图像区域。模型在 RefCOCO 系列八个数据划分上的指代表达理解平均比 Qwen3.5-4B 提升 5.6 个百分点，并在全部八项细粒度感知基准上取得提升。
 
-https://github.com/user-attachments/assets/d7ed080d-f815-4eb5-80b0-85273974f687
+[![播放 Xiaomi-Lens-0 概览视频](docs/assets/video/overview_poster.jpg)](https://xiaomi-research.github.io/xiaomi-lens-0/#video)
 
-*98 秒概览视频，也可以在[项目主页](https://seerray-lab.github.io/Xiaomi-Lens-0/#video)观看（[原始分辨率 MP4](docs/assets/video/xiaomi_lens_0_overview.mp4)）。*
+*98 秒概览视频，也可以在[项目主页](https://xiaomi-research.github.io/xiaomi-lens-0/#video)观看（[原始分辨率 MP4](docs/assets/video/xiaomi_lens_0_overview.mp4)）。*
 
 <p align="center"><img src="docs/assets/samples/showcase_all_domains.gif" width="100%" alt="Xiaomi-Lens-0 在六类任务中的输出回放"></p>
 
@@ -27,8 +27,8 @@ https://github.com/user-attachments/assets/d7ed080d-f815-4eb5-80b0-85273974f687
 ## 📰 最新动态
 
 - Xiaomi-Lens-0 [训练代码](src/xiaomi_lens/train/)现已开源，包含两个训练阶段、启动脚本和示例数据。使用方法见[训练说明](#训练)。
-- [Xiaomi-Lens-0 在线 Demo](https://huggingface.co/spaces/hugging-apps/xiaomi-lens-0) 现已在 Hugging Face Spaces 上线。
-- [Xiaomi-Lens-0](https://huggingface.co/SeerRay-Lab/Xiaomi-Lens-0) 模型权重与 [LensBench](https://huggingface.co/datasets/SeerRay-Lab/LensBench) 评测基准数据集现已在 Hugging Face 开源。
+- [Xiaomi-Lens-0 在线 Demo](https://huggingface.co/spaces/SeerRay-Lab/xiaomi-lens-0) 现已在 Hugging Face Spaces 上线。
+- [Xiaomi-Lens-0](https://huggingface.co/xiaomi-research/Xiaomi-Lens-0) 模型权重与 [LensBench](https://huggingface.co/datasets/SeerRay-Lab/LensBench) 评测基准数据集现已在 Hugging Face 开源。
 - [Xiaomi-Lens-0 技术报告](https://arxiv.org/abs/2610.23279)现已在 arXiv 公开。
 
 ## ✨ 核心能力
@@ -50,7 +50,7 @@ https://github.com/user-attachments/assets/d7ed080d-f815-4eb5-80b0-85273974f687
 
 <p align="center"><img src="docs/assets/figures/architecture.png" width="100%" alt="Xiaomi-Lens-0 模型架构"></p>
 
-训练分为两个阶段：第一阶段预训练掩码解码器，第二阶段进行全参数监督微调。[项目主页](https://seerray-lab.github.io/Xiaomi-Lens-0/#data)展示了训练数据构成，以及指代表达分割、视觉问答（VQA）和 LensBench 的数据处理流程。
+训练分为两个阶段：第一阶段预训练掩码解码器，第二阶段进行全参数监督微调。[项目主页](https://xiaomi-research.github.io/xiaomi-lens-0/#data)展示了训练数据构成，以及指代表达分割、视觉问答（VQA）和 LensBench 的数据处理流程。
 
 ## 🎬 示例展示
 
@@ -65,7 +65,7 @@ https://github.com/user-attachments/assets/d7ed080d-f815-4eb5-80b0-85273974f687
 </tr>
 </table>
 
-全部 24 个案例（每类能力各 4 个）均可在[项目主页](https://seerray-lab.github.io/Xiaomi-Lens-0/#samples)回放。
+全部 24 个案例（每类能力各 4 个）均可在[项目主页](https://xiaomi-research.github.io/xiaomi-lens-0/#samples)回放。
 
 ## 📊 评测结果
 
@@ -173,7 +173,7 @@ https://github.com/user-attachments/assets/d7ed080d-f815-4eb5-80b0-85273974f687
 | Qwen3.5<sub>4B</sub> | <u>66.5</u> | 60.3 | <u>85.4</u> | 82.2 | <u>81.5</u> | <u>75.6</u> | <u>43.8</u> | 82.7 |
 | **Xiaomi-Lens-0<sub>4B</sub>** | **69.7** | **67.5** | **88.1** | **87.4** | **82.5** | **80.6** | **50.6** | **84.4** |
 
-RefCOCO 系列数据集上的边界框定位 F1 结果见[项目主页](https://seerray-lab.github.io/Xiaomi-Lens-0/#results)。
+RefCOCO 系列数据集上的边界框定位 F1 结果见[项目主页](https://xiaomi-research.github.io/xiaomi-lens-0/#results)。
 
 ### 7. LensBench
 
@@ -211,19 +211,19 @@ GPT-6-Astra 在显式、隐式指令以及航拍、驾驶和全景领域的 cIoU
 ### 安装
 
 ```bash
-git clone https://github.com/SeerRay-Lab/Xiaomi-Lens-0.git
-cd Xiaomi-Lens-0
+git clone https://github.com/xiaomi-research/xiaomi-lens-0.git
+cd xiaomi-lens-0
 pip install -r requirements.txt   # torch、transformers 5.4、flash-attn
 pip install -e .
 ```
 
-推理需要 CUDA GPU（bf16，FlashAttention-2）。下文命令以 `SeerRay-Lab/Xiaomi-Lens-0` 从 [Hugging Face](https://huggingface.co/SeerRay-Lab/Xiaomi-Lens-0) 加载权重；如需使用已下载的副本，传入本地目录即可。
+推理需要 CUDA GPU（bf16，FlashAttention-2）。下文命令以 `xiaomi-research/Xiaomi-Lens-0` 从 [Hugging Face](https://huggingface.co/xiaomi-research/Xiaomi-Lens-0) 加载权重；如需使用已下载的副本，传入本地目录即可。
 
 ### 使用 Transformers 推理
 
 ```bash
 python infer.py \
-  --checkpoint SeerRay-Lab/Xiaomi-Lens-0 \
+  --checkpoint xiaomi-research/Xiaomi-Lens-0 \
   --image /path/to/image.jpg \
   --text 'Locate all instances in the image that match the description "the cat on the left". Report bbox coordinates and masks.' \
   --output result.jpg --draw-bbox
@@ -249,7 +249,7 @@ from infer import (
 )
 
 device = torch.device("cuda")
-model, processor, mask_token_id = load_model_and_processor("SeerRay-Lab/Xiaomi-Lens-0", device)
+model, processor, mask_token_id = load_model_and_processor("xiaomi-research/Xiaomi-Lens-0", device)
 
 image = Image.open("/path/to/image.jpg").convert("RGB")
 text = ('Locate all instances in the image that match the description '
@@ -281,10 +281,10 @@ if num_masks > 0:
 pip install -e ".[vllm]"
 
 # 终端 1：文本生成，端口 8000
-bash src/xiaomi_lens/integrations/vllm/run_vllm.sh SeerRay-Lab/Xiaomi-Lens-0
+bash src/xiaomi_lens/integrations/vllm/run_vllm.sh xiaomi-research/Xiaomi-Lens-0
 
 # 终端 2：掩码解码，端口 8001
-bash src/xiaomi_lens/integrations/vllm/run_vllm_mask.sh SeerRay-Lab/Xiaomi-Lens-0
+bash src/xiaomi_lens/integrations/vllm/run_vllm_mask.sh xiaomi-research/Xiaomi-Lens-0
 
 # 终端 3：调用两个服务并保存叠加结果
 python -m xiaomi_lens.integrations.vllm.client \
@@ -301,7 +301,7 @@ LensBench 已发布于 [Hugging Face Datasets](https://huggingface.co/datasets/S
 hf download SeerRay-Lab/LensBench --repo-type dataset --local-dir LensBench
 ```
 
-使用 `eval/run.py` 进行评测。默认从 Hugging Face 加载 `SeerRay-Lab/Xiaomi-Lens-0` 和 `SeerRay-Lab/LensBench`；`--model-path` 与 `--dataset-path` 也可以传入本地权重目录和本地 `test.parquet`（或其所在目录）。
+使用 `eval/run.py` 进行评测。默认从 Hugging Face 加载 `xiaomi-research/Xiaomi-Lens-0` 和 `SeerRay-Lab/LensBench`；`--model-path` 与 `--dataset-path` 也可以传入本地权重目录和本地 `test.parquet`（或其所在目录）。
 
 ```bash
 pip install -e ".[eval]"

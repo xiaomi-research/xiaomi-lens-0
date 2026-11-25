@@ -54,7 +54,7 @@ GROUPS = ("domain", "explicitness", "cardinality")
 EXPECTED_ROWS = 4800
 ROOT = Path(__file__).resolve().parents[1]
 TIMEOUT_SECONDS = 1800
-DEFAULT_MODEL = "SeerRay-Lab/Xiaomi-Lens-0"
+DEFAULT_MODEL = "xiaomi-research/Xiaomi-Lens-0"
 DEFAULT_DATASET = "SeerRay-Lab/LensBench"
 DATASET_FILE = "test.parquet"
 

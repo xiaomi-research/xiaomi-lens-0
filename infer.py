@@ -26,14 +26,14 @@ The parsing, decoding, and visualization functions are also used by vLLM serving
 Examples:
     # Locate instances matching a referring expression.
     python infer.py \\
-        --checkpoint SeerRay-Lab/Xiaomi-Lens-0 \\
+        --checkpoint xiaomi-research/Xiaomi-Lens-0 \\
         --image /path/to/image.jpg \\
         --text 'Locate all instances in the image that match the description "the cat on the left". Report bbox coordinates and masks.' \\
         --output result.jpg --draw-bbox
 
     # Locate all people and save one overlay per predicted instance.
     python infer.py \\
-        --checkpoint SeerRay-Lab/Xiaomi-Lens-0 \\
+        --checkpoint xiaomi-research/Xiaomi-Lens-0 \\
         --image /path/to/image.jpg \\
         --text 'Locate all instances in the image that match the description "person". Report bbox coordinates and masks.' \\
         --output result.jpg --draw-bbox --per-mask-output
@@ -356,7 +356,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--checkpoint", type=Path, required=True, help="Local checkpoint directory or Hugging Face repo ID (e.g. SeerRay-Lab/Xiaomi-Lens-0).")
+    parser.add_argument("--checkpoint", type=Path, required=True, help="Local checkpoint directory or Hugging Face repo ID (e.g. xiaomi-research/Xiaomi-Lens-0).")
     parser.add_argument("--image", type=Path, required=True, help="Input image path.")
     parser.add_argument(
         "--text",

@@ -32,7 +32,7 @@ BACKEND="${1:?usage: run.sh <hf|vllm> [extra run.py args...]}"
 shift
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MODEL="${MODEL:-SeerRay-Lab/Xiaomi-Lens-0}"
+MODEL="${MODEL:-xiaomi-research/Xiaomi-Lens-0}"
 DATASET="${DATASET:-SeerRay-Lab/LensBench}"
 # Unset MAX_NEW_TOKENS keeps run.py's default (DEFAULT_MAX_NEW_TOKENS).
 COMMON_ARGS=()

@@ -44,13 +44,13 @@
 # forward hook, preventing the pooler from receiving pre-merge patch features.
 #
 # Usage:
-#   PORT=8001 bash run_vllm_mask.sh SeerRay-Lab/Xiaomi-Lens-0 [extra vllm args...]   # or a local checkpoint dir
+#   PORT=8001 bash run_vllm_mask.sh xiaomi-research/Xiaomi-Lens-0 [extra vllm args...]   # or a local checkpoint dir
 set -euo pipefail
 
 CKPT="${1:?usage: run_vllm_mask.sh <checkpoint_dir|hf_repo_id> [extra vllm args...]}"
 shift || true
 
-# Accept a Hugging Face repo ID (e.g. SeerRay-Lab/Xiaomi-Lens-0): download the
+# Accept a Hugging Face repo ID (e.g. xiaomi-research/Xiaomi-Lens-0): download the
 # snapshot, or reuse the cached one, and serve from the cache directory.
 if [[ ! -d "${CKPT}" ]]; then
     CKPT="$(python3 -c 'import sys; from huggingface_hub import snapshot_download; print(snapshot_download(sys.argv[1]))' "${CKPT}")"

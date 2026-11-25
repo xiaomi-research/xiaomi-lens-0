@@ -2,11 +2,11 @@
 <h1 align="center">Xiaomi-Lens-0</h1>
 <p><b>Pixel-level grounding and visual reasoning in a compact 4B multimodal model.</b></p>
 <p>
-  <a href="https://seerray-lab.github.io/Xiaomi-Lens-0/"><img src="https://img.shields.io/badge/Project-Page-FF6900" alt="Project Page"></a>
+  <a href="https://xiaomi-research.github.io/xiaomi-lens-0/"><img src="https://img.shields.io/badge/Project-Page-FF6900" alt="Project Page"></a>
   <a href="https://arxiv.org/abs/2610.23279"><img src="https://img.shields.io/badge/arXiv-2610.23279-b31b1b" alt="arXiv"></a>
-  <a href="https://huggingface.co/SeerRay-Lab/Xiaomi-Lens-0"><img src="https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?logo=huggingface&amp;logoColor=FFD21E" alt="Hugging Face Model"></a>
+  <a href="https://huggingface.co/xiaomi-research/Xiaomi-Lens-0"><img src="https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?logo=huggingface&amp;logoColor=FFD21E" alt="Hugging Face Model"></a>
   <a href="https://modelscope.cn/models/SeerRay-Lab/Xiaomi-Lens-0"><img src="https://img.shields.io/badge/ModelScope-Model-624AFF" alt="ModelScope Model"></a>
-  <a href="https://github.com/SeerRay-Lab/Xiaomi-Lens-0"><img src="https://img.shields.io/badge/GitHub-SeerRay--Lab%2FXiaomi--Lens--0-181717?logo=github" alt="GitHub"></a>
+  <a href="https://github.com/xiaomi-research/xiaomi-lens-0"><img src="https://img.shields.io/badge/GitHub-xiaomi--research%2Fxiaomi--lens--0-181717?logo=github" alt="GitHub"></a>
   <a href="https://huggingface.co/datasets/SeerRay-Lab/LensBench"><img src="https://img.shields.io/badge/LensBench-Dataset-e3ad25?logo=huggingface&amp;logoColor=white" alt="LensBench dataset"></a>
   <a href="#-citation"><img src="https://img.shields.io/badge/BibTeX-cite-d6336c" alt="Citation"></a>
 </p>
@@ -16,9 +16,9 @@
 
 Xiaomi-Lens-0 is a 4B multimodal large language model that learns from pixel-level supervision through a shared visual backbone. Starting from Qwen3.5-4B, it decodes each generated `<|mask|>` token into a mask with a lightweight decoder, so the same model that answers in text can point at the regions it refers to, in a final answer or in the middle of its reasoning. It improves referring comprehension over Qwen3.5-4B by 5.6 points on average across eight RefCOCO-family splits and improves scores on all eight fine-grained perception benchmarks.
 
-https://github.com/user-attachments/assets/d7ed080d-f815-4eb5-80b0-85273974f687
+[![Play the Xiaomi-Lens-0 overview video](docs/assets/video/overview_poster.jpg)](https://xiaomi-research.github.io/xiaomi-lens-0/#video)
 
-*98-second overview. Also available on the [project page](https://seerray-lab.github.io/Xiaomi-Lens-0/#video) ([full-resolution MP4](docs/assets/video/xiaomi_lens_0_overview.mp4)).*
+*98-second overview. Also available on the [project page](https://xiaomi-research.github.io/xiaomi-lens-0/#video) ([full-resolution MP4](docs/assets/video/xiaomi_lens_0_overview.mp4)).*
 
 <p align="center"><img src="docs/assets/samples/showcase_all_domains.gif" width="100%" alt="Xiaomi-Lens-0 recorded outputs across six task domains"></p>
 
@@ -27,8 +27,8 @@ https://github.com/user-attachments/assets/d7ed080d-f815-4eb5-80b0-85273974f687
 ## 📰 News
 
 - The Xiaomi-Lens-0 [training code](src/xiaomi_lens/train/) is now open source, including both training stages, launch scripts, and example data. See [Training](#training) to get started.
-- The [Xiaomi-Lens-0 online demo](https://huggingface.co/spaces/hugging-apps/xiaomi-lens-0) is now live on Hugging Face Spaces.
-- The [Xiaomi-Lens-0](https://huggingface.co/SeerRay-Lab/Xiaomi-Lens-0) model weights and the [LensBench](https://huggingface.co/datasets/SeerRay-Lab/LensBench) benchmark dataset are now publicly available on Hugging Face.
+- The [Xiaomi-Lens-0 online demo](https://huggingface.co/spaces/SeerRay-Lab/xiaomi-lens-0) is now live on Hugging Face Spaces.
+- The [Xiaomi-Lens-0](https://huggingface.co/xiaomi-research/Xiaomi-Lens-0) model weights and the [LensBench](https://huggingface.co/datasets/SeerRay-Lab/LensBench) benchmark dataset are now publicly available on Hugging Face.
 - The [Xiaomi-Lens-0 Technical Report](https://arxiv.org/abs/2610.23279) is now publicly available on arXiv.
 
 ## ✨ What it does
@@ -50,7 +50,7 @@ The same decoder supports **thinking with visual latents**: `<|mask|>` tokens pl
 
 <p align="center"><img src="docs/assets/figures/architecture.png" width="100%" alt="Xiaomi-Lens-0 architecture"></p>
 
-Training runs in two stages: Stage 1 pretrains the mask decoder, and Stage 2 performs full-parameter supervised fine-tuning. The [project page](https://seerray-lab.github.io/Xiaomi-Lens-0/#data) shows the training data mix and the referring expression segmentation, VQA, and LensBench data pipelines.
+Training runs in two stages: Stage 1 pretrains the mask decoder, and Stage 2 performs full-parameter supervised fine-tuning. The [project page](https://xiaomi-research.github.io/xiaomi-lens-0/#data) shows the training data mix and the referring expression segmentation, VQA, and LensBench data pipelines.
 
 ## 🎬 Showcases
 
@@ -65,7 +65,7 @@ Training runs in two stages: Stage 1 pretrains the mask decoder, and Stage 2 per
 </tr>
 </table>
 
-All 24 recorded cases, four per domain, can be replayed on the [project page](https://seerray-lab.github.io/Xiaomi-Lens-0/#samples).
+All 24 recorded cases, four per domain, can be replayed on the [project page](https://xiaomi-research.github.io/xiaomi-lens-0/#samples).
 
 ## 📊 Results
 
@@ -173,7 +173,7 @@ Recall, precision, and F1 at IoU 0.50 and 0.95; the mIoU group averages each met
 | Qwen3.5<sub>4B</sub> | <u>66.5</u> | 60.3 | <u>85.4</u> | 82.2 | <u>81.5</u> | <u>75.6</u> | <u>43.8</u> | 82.7 |
 | **Xiaomi-Lens-0<sub>4B</sub>** | **69.7** | **67.5** | **88.1** | **87.4** | **82.5** | **80.6** | **50.6** | **84.4** |
 
-Box-grounding F1 on the RefCOCO family is on the [project page](https://seerray-lab.github.io/Xiaomi-Lens-0/#results).
+Box-grounding F1 on the RefCOCO family is on the [project page](https://xiaomi-research.github.io/xiaomi-lens-0/#results).
 
 ### 7. LensBench
 
@@ -211,19 +211,19 @@ Marginal results pool single and multiple targets. Each cell reports cIoU / Prec
 ### Installation
 
 ```bash
-git clone https://github.com/SeerRay-Lab/Xiaomi-Lens-0.git
-cd Xiaomi-Lens-0
+git clone https://github.com/xiaomi-research/xiaomi-lens-0.git
+cd xiaomi-lens-0
 pip install -r requirements.txt   # torch, transformers 5.4, flash-attn
 pip install -e .
 ```
 
-Inference needs a CUDA GPU (bf16, FlashAttention-2). The commands below load the weights from [Hugging Face](https://huggingface.co/SeerRay-Lab/Xiaomi-Lens-0) as `SeerRay-Lab/Xiaomi-Lens-0`; pass a local directory to use a downloaded copy.
+Inference needs a CUDA GPU (bf16, FlashAttention-2). The commands below load the weights from [Hugging Face](https://huggingface.co/xiaomi-research/Xiaomi-Lens-0) as `xiaomi-research/Xiaomi-Lens-0`; pass a local directory to use a downloaded copy.
 
 ### Inference with Transformers
 
 ```bash
 python infer.py \
-  --checkpoint SeerRay-Lab/Xiaomi-Lens-0 \
+  --checkpoint xiaomi-research/Xiaomi-Lens-0 \
   --image /path/to/image.jpg \
   --text 'Locate all instances in the image that match the description "the cat on the left". Report bbox coordinates and masks.' \
   --output result.jpg --draw-bbox
@@ -249,7 +249,7 @@ from infer import (
 )
 
 device = torch.device("cuda")
-model, processor, mask_token_id = load_model_and_processor("SeerRay-Lab/Xiaomi-Lens-0", device)
+model, processor, mask_token_id = load_model_and_processor("xiaomi-research/Xiaomi-Lens-0", device)
 
 image = Image.open("/path/to/image.jpg").convert("RGB")
 text = ('Locate all instances in the image that match the description '
@@ -281,10 +281,10 @@ Serving uses two vLLM processes on the same checkpoint: one generates text, and 
 pip install -e ".[vllm]"
 
 # Terminal 1: text generation on :8000
-bash src/xiaomi_lens/integrations/vllm/run_vllm.sh SeerRay-Lab/Xiaomi-Lens-0
+bash src/xiaomi_lens/integrations/vllm/run_vllm.sh xiaomi-research/Xiaomi-Lens-0
 
 # Terminal 2: mask decoding on :8001
-bash src/xiaomi_lens/integrations/vllm/run_vllm_mask.sh SeerRay-Lab/Xiaomi-Lens-0
+bash src/xiaomi_lens/integrations/vllm/run_vllm_mask.sh xiaomi-research/Xiaomi-Lens-0
 
 # Terminal 3: query both and save the overlay
 python -m xiaomi_lens.integrations.vllm.client \
@@ -301,7 +301,7 @@ LensBench is available on [Hugging Face Datasets](https://huggingface.co/dataset
 hf download SeerRay-Lab/LensBench --repo-type dataset --local-dir LensBench
 ```
 
-Evaluate with `eval/run.py`. By default it loads `SeerRay-Lab/Xiaomi-Lens-0` and `SeerRay-Lab/LensBench` from Hugging Face; `--model-path` and `--dataset-path` also accept a local checkpoint directory and a local `test.parquet` (or its directory).
+Evaluate with `eval/run.py`. By default it loads `xiaomi-research/Xiaomi-Lens-0` and `SeerRay-Lab/LensBench` from Hugging Face; `--model-path` and `--dataset-path` also accept a local checkpoint directory and a local `test.parquet` (or its directory).
 
 ```bash
 pip install -e ".[eval]"

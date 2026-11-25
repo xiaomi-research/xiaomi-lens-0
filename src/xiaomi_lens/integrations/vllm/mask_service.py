@@ -22,7 +22,7 @@ excluded. This service uses `/decode_mask`, while the vLLM plugin uses `/pooling
 
 Run:
     PYTHONPATH=src python -m xiaomi_lens.integrations.vllm.mask_service \\
-        --checkpoint SeerRay-Lab/Xiaomi-Lens-0 --port 8100
+        --checkpoint xiaomi-research/Xiaomi-Lens-0 --port 8100
 
 Endpoint:
     POST /decode_mask
