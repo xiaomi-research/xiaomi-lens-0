@@ -16,7 +16,7 @@
 
 Xiaomi-Lens-0 是一个 4B 多模态大语言模型，通过像素级监督学习共享视觉骨干网络。模型基于 Qwen3.5-4B，使用轻量级解码器将每个生成的 `<|mask|>` token 解码为分割掩码，让模型在输出文字回答的同时，也能在最终答案或推理过程中指出所描述的图像区域。模型在 RefCOCO 系列八个数据划分上的指代表达理解平均比 Qwen3.5-4B 提升 5.6 个百分点，并在全部八项细粒度感知基准上取得提升。
 
-https://github.com/user-attachments/assets/c7f939ae-4850-48b5-b890-dc6ec89b206c
+https://github.com/user-attachments/assets/52a37628-4d0e-4dc0-b82c-850e792b0ceb
 
 *98 秒概览视频，也可以在[项目主页](https://xiaomi-research.github.io/xiaomi-lens-0/#video)观看（[原始分辨率 MP4](docs/assets/video/xiaomi_lens_0_overview.mp4)）。*
 
