@@ -16,7 +16,7 @@
 
 Xiaomi-Lens-0 is a 4B multimodal large language model that learns from pixel-level supervision through a shared visual backbone. Starting from Qwen3.5-4B, it decodes each generated `<|mask|>` token into a mask with a lightweight decoder, so the same model that answers in text can point at the regions it refers to, in a final answer or in the middle of its reasoning. It improves referring comprehension over Qwen3.5-4B by 5.6 points on average across eight RefCOCO-family splits and improves scores on all eight fine-grained perception benchmarks.
 
-[![Play the Xiaomi-Lens-0 overview video](docs/assets/video/overview_poster.jpg)](https://xiaomi-research.github.io/xiaomi-lens-0/#video)
+https://github.com/user-attachments/assets/c7f939ae-4850-48b5-b890-dc6ec89b206c
 
 *98-second overview. Also available on the [project page](https://xiaomi-research.github.io/xiaomi-lens-0/#video) ([full-resolution MP4](docs/assets/video/xiaomi_lens_0_overview.mp4)).*
 
