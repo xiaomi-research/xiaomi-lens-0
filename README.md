@@ -26,10 +26,10 @@ https://github.com/user-attachments/assets/52a37628-4d0e-4dc0-b82c-850e792b0ceb
 
 ## 📰 News
 
-- The Xiaomi-Lens-0 [training code](src/xiaomi_lens/train/) is now open source, including both training stages, launch scripts, and example data. See [Training](#training) to get started.
-- The [Xiaomi-Lens-0 online demo](https://huggingface.co/spaces/SeerRay-Lab/xiaomi-lens-0) is now live on Hugging Face Spaces.
-- The [Xiaomi-Lens-0](https://huggingface.co/xiaomi-research/Xiaomi-Lens-0) model weights and the [LensBench](https://huggingface.co/datasets/SeerRay-Lab/LensBench) benchmark dataset are now publicly available on Hugging Face.
-- The [Xiaomi-Lens-0 Technical Report](https://arxiv.org/abs/2610.23279) is now publicly available on arXiv.
+- **[2026.10.22]** The Xiaomi-Lens-0 [training code](src/xiaomi_lens/train/) is now open source, including both training stages, launch scripts, and example data. See [Training](#training) to get started.
+- **[2026.10.20]** The [Xiaomi-Lens-0 online demo](https://huggingface.co/spaces/SeerRay-Lab/xiaomi-lens-0) is now live on Hugging Face Spaces.
+- **[2026.10.19]** The [Xiaomi-Lens-0](https://huggingface.co/xiaomi-research/Xiaomi-Lens-0) model weights and the [LensBench](https://huggingface.co/datasets/SeerRay-Lab/LensBench) benchmark dataset are now publicly available on Hugging Face.
+- **[2026.10.19]** The [Xiaomi-Lens-0 Technical Report](https://arxiv.org/abs/2610.23279) is now publicly available on arXiv.
 
 ## ✨ What it does
 

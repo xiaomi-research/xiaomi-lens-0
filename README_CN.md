@@ -26,10 +26,10 @@ https://github.com/user-attachments/assets/52a37628-4d0e-4dc0-b82c-850e792b0ceb
 
 ## 📰 最新动态
 
-- Xiaomi-Lens-0 [训练代码](src/xiaomi_lens/train/)现已开源，包含两个训练阶段、启动脚本和示例数据。使用方法见[训练说明](#训练)。
-- [Xiaomi-Lens-0 在线 Demo](https://huggingface.co/spaces/SeerRay-Lab/xiaomi-lens-0) 现已在 Hugging Face Spaces 上线。
-- [Xiaomi-Lens-0](https://huggingface.co/xiaomi-research/Xiaomi-Lens-0) 模型权重与 [LensBench](https://huggingface.co/datasets/SeerRay-Lab/LensBench) 评测基准数据集现已在 Hugging Face 开源。
-- [Xiaomi-Lens-0 技术报告](https://arxiv.org/abs/2610.23279)现已在 arXiv 公开。
+- **[2026.10.22]** Xiaomi-Lens-0 [训练代码](src/xiaomi_lens/train/)现已开源，包含两个训练阶段、启动脚本和示例数据。使用方法见[训练说明](#训练)。
+- **[2026.10.20]** [Xiaomi-Lens-0 在线 Demo](https://huggingface.co/spaces/SeerRay-Lab/xiaomi-lens-0) 现已在 Hugging Face Spaces 上线。
+- **[2026.10.19]** [Xiaomi-Lens-0](https://huggingface.co/xiaomi-research/Xiaomi-Lens-0) 模型权重与 [LensBench](https://huggingface.co/datasets/SeerRay-Lab/LensBench) 评测基准数据集现已在 Hugging Face 开源。
+- **[2026.10.19]** [Xiaomi-Lens-0 技术报告](https://arxiv.org/abs/2610.23279)现已在 arXiv 公开。
 
 ## ✨ 核心能力
 
