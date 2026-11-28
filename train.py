@@ -37,6 +37,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "src"))
 from accelerate.utils import set_seed  # noqa: E402
 from transformers import HfArgumentParser  # noqa: E402
 from transformers.trainer_utils import get_last_checkpoint  # noqa: E402
+from transformers.utils.peft_utils import ADAPTER_CONFIG_NAME  # noqa: E402
 
 from xiaomi_lens.train.config import (  # noqa: E402
     XiaomiLensModelConfig,
@@ -111,17 +112,21 @@ def _resolve_auto_resume(
     return last_checkpoint
 
 
-def _validate_resume_target(resume_from_checkpoint: Any, output_dir: str) -> None:
+def _validate_resume_target(resume_from_checkpoint: Any, output_dir: str, *, use_lora: bool) -> str | None:
     if resume_from_checkpoint is True:
         ckpt_dir = pathlib.Path(output_dir)
-        if not ckpt_dir.exists() or not any(ckpt_dir.glob("checkpoint-*")):
+        resume_from_checkpoint = get_last_checkpoint(ckpt_dir) if ckpt_dir.is_dir() else None
+        if resume_from_checkpoint is None:
             raise ValueError(
                 f"Requested automatic checkpoint resume, but no checkpoints were found under {ckpt_dir}."
             )
-    elif isinstance(resume_from_checkpoint, str):
+    if isinstance(resume_from_checkpoint, str):
         checkpoint_path = pathlib.Path(resume_from_checkpoint)
         if not checkpoint_path.exists():
             raise ValueError(f"Checkpoint path does not exist: {checkpoint_path}")
+        if not use_lora and (checkpoint_path / ADAPTER_CONFIG_NAME).is_file():
+            raise ValueError("Resume a LoRA checkpoint with --use_lora and the original base model.")
+    return resume_from_checkpoint
 
 
 def main(
@@ -130,6 +135,14 @@ def main(
     model_args: XiaomiLensModelConfig,
 ) -> None:
     set_seed(training_args.seed)
+
+    resume_from_checkpoint = _normalize_resume_from_checkpoint(training_args.resume_from_checkpoint)
+    resume_from_checkpoint = _resolve_auto_resume(
+        training_args, resume_from_checkpoint, log=training_args.process_index == 0,
+    )
+    resume_from_checkpoint = _validate_resume_target(
+        resume_from_checkpoint, training_args.output_dir, use_lora=model_args.use_lora,
+    )
 
     # Dataset construction is owned by ``XiaomiLensTrainer.__init__``. It scans
     # lightweight JSONL offset indexes into memory and does preprocessing in
@@ -167,12 +180,6 @@ def main(
                 splits,
             )
         )
-
-    resume_from_checkpoint = _normalize_resume_from_checkpoint(training_args.resume_from_checkpoint)
-    resume_from_checkpoint = _resolve_auto_resume(
-        training_args, resume_from_checkpoint, log=trainer.is_world_process_zero()
-    )
-    _validate_resume_target(resume_from_checkpoint, training_args.output_dir)
 
     if resume_from_checkpoint is not None:
         trainer.train(resume_from_checkpoint=resume_from_checkpoint)

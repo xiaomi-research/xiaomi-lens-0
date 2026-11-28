@@ -130,17 +130,21 @@ def encode_sample(
     # single-image sample keeps the full `max_pixels` (budget ≥ one image's cap);
     # only multi-image samples shrink, and just enough to fit.
     image_processor_kwargs = {}
-    if min_pixels is not None:
+    if min_pixels is not None or max_pixels is not None:
+        # Qwen applies per-call pixel overrides when both bounds are supplied.
+        size = processor.image_processor.size
+        if min_pixels is None:
+            min_pixels = size["shortest_edge"]
+        if max_pixels is None:
+            max_pixels = size["longest_edge"]
         image_processor_kwargs["min_pixels"] = min_pixels
-    if max_pixels is not None:
         effective_max_pixels = max_pixels
         if pil_images:
             px_per_token = _pixels_per_token(processor)
             budget = max(int(model_max_length) - int(image_token_reserve), 1)
             per_image_cap = (budget // len(pil_images)) * px_per_token
             effective_max_pixels = min(max_pixels, per_image_cap)
-            if min_pixels is not None:
-                effective_max_pixels = max(effective_max_pixels, min_pixels)
+            effective_max_pixels = max(effective_max_pixels, min_pixels)
         image_processor_kwargs["max_pixels"] = effective_max_pixels
 
     if pil_images:

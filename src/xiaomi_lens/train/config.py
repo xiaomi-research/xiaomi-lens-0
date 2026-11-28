@@ -99,18 +99,26 @@ class XiaomiLensScriptArguments:
                           "uses `train:` and `eval:` sections. Mutually exclusive "
                           "with --data_file_paths."},
     )
-    max_pixels: Optional[int] = field(default=12845056)
-    min_pixels: Optional[int] = field(default=3136)
+    max_pixels: Optional[int] = field(default=None, metadata={"help": "Training image pixel ceiling. Defaults to the checkpoint processor."})
+    min_pixels: Optional[int] = field(default=None, metadata={"help": "Training image pixel floor. Defaults to the checkpoint processor."})
     model_max_length: Optional[int] = field(
         default=None,
-        metadata={"help": "Override tokenizer.model_max_length; None keeps the value loaded from the processor."},
+        metadata={"help": "Training sequence length limit. Defaults to the checkpoint tokenizer."},
     )
 
 
 @dataclass
 class XiaomiLensModelConfig:
     model_name_or_path: Optional[str] = field(default=None)
+    model_revision: Optional[str] = field(default=None, metadata={"help": "Hugging Face base model revision (branch, tag or commit)."})
     attn_implementation: Optional[str] = field(default="flash_attention_2")
+    use_lora: bool = field(
+        default=False,
+        metadata={"help": "Fine-tune an existing Xiaomi-Lens-0 checkpoint with language-model LoRA and train the full mask decoder."},
+    )
+    lora_r: int = field(default=16, metadata={"help": "LoRA rank."})
+    lora_alpha: int = field(default=32, metadata={"help": "LoRA scaling factor numerator."})
+    lora_dropout: float = field(default=0.05, metadata={"help": "Dropout probability on LoRA inputs."})
     # `unfreeze_*` flags follow a freeze-everything-then-opt-in convention: the
     # trainer first sets `requires_grad=False` on every parameter, then each
     # True flag re-enables its module. See
@@ -161,6 +169,6 @@ class XiaomiLensModelConfig:
     )
     unfreeze_mask_decoder: bool = field(
         default=False,
-        metadata={"help": "Unfreeze the PixelMaskDecoder, which is trained from random init."},
+        metadata={"help": "Unfreeze the PixelMaskDecoder."},
     )
     torch_dtype: Optional[str] = field(default="bfloat16")

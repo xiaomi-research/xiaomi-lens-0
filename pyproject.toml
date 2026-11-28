@@ -19,7 +19,8 @@ vllm = ["vllm>=0.19.1", "pycocotools", "safetensors"]
 eval = ["pyarrow", "pycocotools", "huggingface_hub"]
 # Training (train.py, scripts/train_stage*.sh); tested with transformers 5.4.0,
 # deepspeed 0.18.9 and accelerate 1.13.0.
-train = ["transformers==5.4.0", "accelerate>=1.13.0", "deepspeed>=0.18.9", "pyyaml", "tensorboard"]
+train = ["transformers==5.4.0", "torchvision>=0.25.0", "accelerate>=1.13.0", "deepspeed>=0.18.9", "pyyaml", "tensorboard"]
+lora = ["peft>=0.21.3"]
 # Optional fused kernels: liger-kernel for the fused linear+CE LM loss and
 # flash-linear-attention / causal-conv1d for Qwen3.5's linear-attention layers.
 train-fast = ["liger-kernel>=0.7.0", "flash-linear-attention>=0.4.2", "causal-conv1d>=1.6.1"]

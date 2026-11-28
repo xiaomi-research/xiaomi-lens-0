@@ -26,6 +26,7 @@ https://github.com/user-attachments/assets/52a37628-4d0e-4dc0-b82c-850e792b0ceb
 
 ## 📰 最新动态
 
+- **[2026.11.28]** Xiaomi-Lens-0 支持基于开源权重在自有数据上进行全参微调和 LoRA 微调。[微调指南](#从开源权重微调)提供训练与适配器导出命令。
 - **[2026.10.22]** Xiaomi-Lens-0 [训练代码](src/xiaomi_lens/train/)现已开源，包含两个训练阶段、启动脚本和示例数据。使用方法见[训练说明](#训练)。
 - **[2026.10.20]** [Xiaomi-Lens-0 在线 Demo](https://huggingface.co/spaces/SeerRay-Lab/xiaomi-lens-0) 现已在 Hugging Face Spaces 上线。
 - **[2026.10.19]** [Xiaomi-Lens-0](https://huggingface.co/xiaomi-research/Xiaomi-Lens-0) 模型权重与 [LensBench](https://huggingface.co/datasets/SeerRay-Lab/LensBench) 评测基准数据集现已在 Hugging Face 开源。
@@ -322,6 +323,36 @@ python eval/run.py --backend vllm --vllm-text-device cuda:0 --vllm-mask-device c
 结果写入 `metrics.json`（整体及按 domain、explicitness、cardinality 分组的 Prec@0.5、cIoU、gIoU），逐样本预测写入 `predictions.jsonl`。加 `--resume` 可继续中断的评测，加 `--limit N` 可快速检查。
 
 ### 训练
+
+#### 从开源权重微调
+
+从 `xiaomi-research/Xiaomi-Lens-0` 或下载后的本地目录加载模型。开源权重已经包含训练过的掩码解码器和 `<|mask|>` token。按照[训练数据格式](examples/train/README_CN.md)准备 JSONL 和 YAML 清单。以下命令使用仓库自带样本在 CUDA GPU 上运行两步。使用自有数据时，替换 `DATA_CONFIG`，并将 `--max_steps 2` 换成所需的 `--num_train_epochs`。
+
+```bash
+pip install -e ".[train]"
+DATA_CONFIG=examples/train/sample/sample.yaml
+
+# 全参微调，使用 DeepSpeed ZeRO-2
+DATA_CONFIG="$DATA_CONFIG" bash scripts/finetune.sh full --max_steps 2 --save_steps 2 --max_pixels 262144
+
+# 语言主干使用 LoRA，同时训练整个掩码解码器
+pip install -e ".[train,lora]"
+DATA_CONFIG="$DATA_CONFIG" bash scripts/finetune.sh lora --max_steps 2 --save_steps 2 --max_pixels 262144
+
+# 将适配器和更新后的掩码解码器导出为完整权重
+python tools/merge_lora.py --adapter-path checkpoints/lens-lora \
+  --output-dir checkpoints/lens-lora-merged
+```
+
+脚本默认将单张训练图像限制为 4,194,304 像素。上面的冒烟测试将上限降到 262,144 像素。`--min_pixels` 默认沿用底座 processor 的下限。这些像素选项和 `--model_max_length` 仅用于训练批次，导出的模型沿用底座 processor 的配置。
+
+用 `MODEL_PATH` 指定本地权重，用 `NPROC_PER_NODE` 指定 GPU 数量。LoRA 多卡训练使用 DDP，覆盖语言层的全部线性投影，包括较窄的 `in_proj_a` 和 `in_proj_b` 门控层。当 rank 达到门控层的输出维度时，适配器参数量可能大于原矩阵。默认 rank 为 16、alpha 为 32、dropout 为 0.05，可通过 `--lora_r`、`--lora_alpha` 和 `--lora_dropout` 调整。传 `--mask_loss_weight -1` 可冻结掩码解码器，仅训练适配器。
+
+恢复训练时，沿用原训练参数，通过 `--resume_from_checkpoint` 指定检查点，例如 `checkpoints/lens-lora/checkpoint-2`。底座权重可以来自另一条路径，但须使用同一版本。若从 Hugging Face 加载，可用 `--model_revision` 指定 `adapter_config.json` 中记录的原始 commit。每次新实验通过 `OUTPUT_DIR` 指定独立的输出目录。
+
+合并命令读取适配器中记录的底座来源。若底座权重已迁移，可通过 `--base-model` 指定同一底座的 Hugging Face 模型 ID 或本地目录。`checkpoints/lens-full` 和 `checkpoints/lens-lora-merged` 可用于 `infer.py --checkpoint`、`eval/run.py --model-path` 或 vLLM 服务。
+
+#### 复现原始两阶段训练
 
 训练从 Qwen3.5 出发，分两个阶段：Stage 1 冻结模型其余部分，只用 mask loss 训练 mask decoder 和 `<|mask|>` 嵌入；Stage 2 全参数微调，同时优化 LM loss 与 mask loss（dice + BCE）。启动脚本使用 DeepSpeed（Stage 1 为 ZeRO-1，Stage 2 为 ZeRO-2），需要 CUDA GPU。
 

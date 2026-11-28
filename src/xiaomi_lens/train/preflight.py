@@ -144,13 +144,20 @@ def _build_dataset_summary(dataset: Any, split_name: str) -> dict[str, Any]:
     }
 
 
-def _build_model_summary(model: Any) -> dict[str, Any]:
+def _build_model_summary(model: Any, *, use_lora: bool) -> dict[str, Any]:
+    if use_lora:
+        model = model.get_base_model()
     config = model.config
     vision_config = getattr(config, "vision_config", getattr(config, "visual_config", None))
     text_config = config.text_config
     decoder_config = getattr(config, "mask_decoder", {})
 
     total_params, trainable_params = _count_parameters(model)
+    decoder = getattr(model, "mask_decoder", None)
+    if use_lora and hasattr(decoder, "modules_to_save"):
+        # Report the active decoder once. PEFT retains a frozen copy for adapter disabling.
+        total_params -= _count_parameters(decoder.original_module)[0]
+        decoder = decoder.modules_to_save[decoder.active_adapters[0]]
     frozen_params = total_params - trainable_params
 
     backbone = getattr(model, "model", None)
@@ -158,7 +165,7 @@ def _build_model_summary(model: Any) -> dict[str, Any]:
         ("visual", getattr(backbone, "visual", None)),
         ("language_model", getattr(backbone, "language_model", None)),
         ("lm_head", getattr(model, "lm_head", None)),
-        ("mask_decoder", getattr(model, "mask_decoder", None)),
+        ("mask_decoder", decoder),
     ]
     module_summaries: list[dict[str, Any]] = []
     for name, module in module_specs:
@@ -181,7 +188,7 @@ def _build_model_summary(model: Any) -> dict[str, Any]:
         "backbone_class": _class_name(backbone),
         "visual_class": _class_name(getattr(backbone, "visual", None)),
         "language_model_class": _class_name(getattr(backbone, "language_model", None)),
-        "mask_decoder_class": _class_name(getattr(model, "mask_decoder", None)),
+        "mask_decoder_class": _class_name(decoder),
         "vision_config": {
             "hidden_size": getattr(vision_config, "hidden_size", None),
             "intermediate_size": getattr(vision_config, "intermediate_size", None),
@@ -250,6 +257,7 @@ def _build_training_summary(
 
     return {
         "model_name_or_path": model_args.model_name_or_path,
+        "model_revision": model_args.model_revision,
         "output_dir": training_args.output_dir,
         "data_file_paths": script_args.data_file_paths,
         "image_folders": script_args.image_folders,
@@ -260,6 +268,10 @@ def _build_training_summary(
         "num_processes": num_processes,
         "attn_implementation": model_args.attn_implementation,
         "torch_dtype": model_args.torch_dtype,
+        "use_lora": model_args.use_lora,
+        "lora_r": model_args.lora_r if model_args.use_lora else None,
+        "lora_alpha": model_args.lora_alpha if model_args.use_lora else None,
+        "lora_dropout": model_args.lora_dropout if model_args.use_lora else None,
         "unfreeze_all_parameters": model_args.unfreeze_all_parameters,
         "unfreeze_vision_tower": model_args.unfreeze_vision_tower,
         "unfreeze_vision_projection": model_args.unfreeze_vision_projection,
@@ -318,7 +330,7 @@ def build_preflight_report(
                 for split_name, dataset in splits.items()
             },
         ),
-        ("model", _build_model_summary(trainer.model)),
+        ("model", _build_model_summary(trainer.model, use_lora=model_args.use_lora)),
     ]
 
     lines = ["=" * 88, "Xiaomi-Lens-0 Preflight", "=" * 88]

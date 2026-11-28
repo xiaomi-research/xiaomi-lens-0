@@ -16,7 +16,7 @@
 
 Responsibilities:
 1. Build the Qwen3.5 backbone with a `<|mask|>` token and a PixelMaskDecoder.
-2. Apply the `--unfreeze_*` trainability recipe.
+2. Apply the `--unfreeze_*` recipe or configure LoRA.
 3. Stream JSONL samples through `LazyCollator` and run LM + mask training.
 """
 
@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 import os
+from pathlib import Path
 import time
 from typing import Optional, Union
 
@@ -31,6 +32,7 @@ import torch
 from torch.utils.data import Dataset
 from transformers import AutoProcessor, PreTrainedModel, Trainer, TrainerCallback
 from transformers.trainer import TRAINING_ARGS_NAME, logger
+from transformers.utils.peft_utils import ADAPTER_CONFIG_NAME, find_adapter_config_file
 
 from ..constants import MASK_TOKEN
 from ..model.config import build_mask_decoder_config
@@ -40,6 +42,9 @@ from ..model.modeling_xiaomi_lens import (
     XiaomiLensQwen3_5ForConditionalGeneration,
 )
 from .config import XiaomiLensModelConfig, XiaomiLensScriptArguments, XiaomiLensTrainingConfig
+
+
+_ADAPTER_MODEL_ERROR = "Set --model_name_or_path to a complete model. Use --resume_from_checkpoint for a LoRA run."
 
 
 class _FreezeNonTrainableEmbedRows:
@@ -124,6 +129,12 @@ class XiaomiLensTrainer(Trainer):
         self.script_args = script_args
         self.model_args = model_args
         self._metrics = defaultdict(list)
+        if model_args.use_lora:
+            from .lora import apply_lora, validate_lora_args
+
+            validate_lora_args(model_args, training_args)
+            if not isinstance(model, str):
+                raise ValueError("--use_lora requires a checkpoint path or Hugging Face model ID.")
         uses_row_mask = (
             not model_args.unfreeze_all_parameters
             and not model_args.unfreeze_embed_tokens
@@ -137,40 +148,43 @@ class XiaomiLensTrainer(Trainer):
                 "set `--weight_decay 0` so AdamW does not decay the frozen rows."
             )
 
+        model_instance = self._build_model(model, training_args, model_args)
+        if getattr(model_instance, "_hf_peft_config_loaded", False):
+            raise ValueError(_ADAPTER_MODEL_ERROR)
         processor_source = model if isinstance(model, str) else model.config._name_or_path
-        processing_class = AutoProcessor.from_pretrained(processor_source)
-        self._configure_image_processor(processing_class.image_processor, script_args)
-        if script_args.model_max_length is not None:
-            processing_class.tokenizer.model_max_length = script_args.model_max_length
+        processing_class = AutoProcessor.from_pretrained(
+            processor_source, revision=model_instance.config._commit_hash or model_args.model_revision
+        )
+        tokenizer = processing_class.tokenizer
 
         # Only `<|mask|>` adds a tokenizer row; `<bbox>` / `</bbox>` reuse the
-        # native box-token IDs (see tools/prepare_base_model.py). Derive the
-        # old/new row partition from the tokenizer, not the embedding shape:
-        # Qwen embeddings are padded past the real vocabulary size.
-        num_new_tokens = processing_class.tokenizer.add_special_tokens(
-            {"additional_special_tokens": [MASK_TOKEN]}
-        )
-        self.mask_token_id = processing_class.tokenizer.convert_tokens_to_ids(MASK_TOKEN)
-        target_vocab_size = len(processing_class.tokenizer)
-        original_vocab_size = target_vocab_size - num_new_tokens
-        logger.info(
-            "[vocab-resize] tokenizer added %d new token(s); "
-            "original_vocab_size=%d, target_vocab_size=%d",
-            num_new_tokens, original_vocab_size, target_vocab_size,
-        )
+        # native box-token IDs (see tools/prepare_base_model.py).
+        self.mask_token_id = tokenizer.get_vocab().get(MASK_TOKEN)
+        if self.mask_token_id is None:
+            if model_args.use_lora:
+                raise ValueError("LoRA requires a Xiaomi-Lens-0 processor with an existing <|mask|> token.")
+            original_vocab_size = len(tokenizer)
+            tokenizer.add_special_tokens(
+                {"additional_special_tokens": [MASK_TOKEN]}, replace_extra_special_tokens=False
+            )
+            self.mask_token_id = tokenizer.convert_tokens_to_ids(MASK_TOKEN)
+            # Resizing to the tokenizer length drops any padding rows beyond the new token.
+            model_instance.resize_token_embeddings(len(tokenizer), mean_resizing=False)
+            self._mean_init_new_token_embeddings(model_instance, original_vocab_size)
+            model_instance.config.text_config.vocab_size = len(tokenizer)
+        else:
+            # A released checkpoint may keep padding rows beyond the tokenizer vocabulary.
+            vocab_size = model_instance.get_input_embeddings().num_embeddings
+            if len(tokenizer) > vocab_size or not 0 <= self.mask_token_id < vocab_size:
+                raise ValueError("The checkpoint and processor vocabularies do not match.")
 
-        model_instance = self._build_model(model, training_args, model_args)
-        # New rows are overwritten with the vocabulary mean right after, so
-        # skip Transformers' covariance-based initialization.
-        model_instance.resize_token_embeddings(target_vocab_size, mean_resizing=False)
-        self._mean_init_new_token_embeddings(model_instance, original_vocab_size)
-        if (
-            hasattr(model_instance.config, "text_config")
-            and model_instance.config.text_config.vocab_size != target_vocab_size
-        ):
-            model_instance.config.text_config.vocab_size = target_vocab_size
-        self._apply_param_trainability(model_instance, model_args)
-        self._disable_unneeded_gradient_checkpointing(model_instance, training_args)
+        if model_args.use_lora:
+            model_instance = apply_lora(
+                model_instance, model_args, model, train_mask_decoder=training_args.mask_loss_weight >= 0
+            )
+        else:
+            self._apply_param_trainability(model_instance, model_args)
+            self._disable_unneeded_gradient_checkpointing(model_instance, training_args)
 
         from .collator import LazyCollator
         from .data.io import load_dataset_config, resolve_dataset_entries
@@ -197,9 +211,11 @@ class XiaomiLensTrainer(Trainer):
         data_collator = LazyCollator(
             processing_class,
             mask_token_id=self.mask_token_id,
-            model_max_length=int(processing_class.tokenizer.model_max_length),
-            max_pixels=getattr(script_args, "max_pixels", None),
-            min_pixels=getattr(script_args, "min_pixels", None),
+            model_max_length=(
+                script_args.model_max_length if script_args.model_max_length is not None else int(tokenizer.model_max_length)
+            ),
+            max_pixels=script_args.max_pixels,
+            min_pixels=script_args.min_pixels,
         )
 
         super().__init__(
@@ -396,6 +412,11 @@ class XiaomiLensTrainer(Trainer):
             )
             return model_id
 
+        if model_id is None:
+            raise ValueError("Set --model_name_or_path to a checkpoint path or Hugging Face model ID.")
+        if (Path(model_id) / ADAPTER_CONFIG_NAME).is_file():
+            raise ValueError(_ADAPTER_MODEL_ERROR)
+
         if training_args.lm_loss_impl not in LM_LOSS_IMPLS:
             raise ValueError(
                 f"--lm_loss_impl must be one of {LM_LOSS_IMPLS}, "
@@ -403,6 +424,8 @@ class XiaomiLensTrainer(Trainer):
             )
 
         model_init_kwargs = dict(training_args.model_init_kwargs or {})
+        if model_args.model_revision is not None:
+            model_init_kwargs["revision"] = model_args.model_revision
         model_init_kwargs["attn_implementation"] = model_args.attn_implementation
         torch_dtype = model_init_kwargs.get("torch_dtype") or model_args.torch_dtype or "bfloat16"
         if isinstance(torch_dtype, str) and torch_dtype != "auto":
@@ -410,11 +433,19 @@ class XiaomiLensTrainer(Trainer):
         model_init_kwargs["torch_dtype"] = torch_dtype
 
         model_cls = XiaomiLensQwen3_5ForConditionalGeneration
-        model_config, _ = model_cls.config_class.from_pretrained(
-            model_id,
-            return_unused_kwargs=True,
-            **model_init_kwargs,
-        )
+        try:
+            model_config, _ = model_cls.config_class.from_pretrained(
+                model_id, return_unused_kwargs=True, **model_init_kwargs,
+            )
+        except OSError as error:
+            hub_kwargs = {
+                name: model_init_kwargs[name]
+                for name in ("cache_dir", "token", "revision", "local_files_only", "subfolder")
+                if name in model_init_kwargs
+            }
+            if find_adapter_config_file(model_id, **hub_kwargs):
+                raise ValueError(_ADAPTER_MODEL_ERROR) from error
+            raise
         if training_args.gradient_checkpointing:
             model_config.use_cache = False
         model_config.update({
@@ -430,32 +461,18 @@ class XiaomiLensTrainer(Trainer):
                 training_args, "average_tokens_across_devices", True
             ),
         })
+        if model_args.use_lora:
+            from .lora import require_mask_decoder_weights
+
+            # LoRA keeps the checkpoint's mask decoder, so it must load completely.
+            model, loading_info = model_cls.from_pretrained(
+                model_id, config=model_config, output_loading_info=True, **model_init_kwargs
+            )
+            require_mask_decoder_weights(loading_info)
+            return model
         # HF Trainer enables gradient checkpointing when train() starts, after
         # `_disable_unneeded_gradient_checkpointing` has had a chance to run.
         return model_cls.from_pretrained(model_id, config=model_config, **model_init_kwargs)
-
-    @staticmethod
-    def _configure_image_processor(image_processor, script_args: XiaomiLensScriptArguments) -> None:
-        if script_args.max_pixels is not None:
-            image_processor.max_pixels = script_args.max_pixels
-        if script_args.min_pixels is not None:
-            image_processor.min_pixels = script_args.min_pixels
-
-        size = getattr(image_processor, "size", None)
-        if isinstance(size, dict):
-            updated_size = dict(size)
-            if script_args.min_pixels is not None:
-                updated_size["shortest_edge"] = script_args.min_pixels
-            if script_args.max_pixels is not None:
-                updated_size["longest_edge"] = script_args.max_pixels
-            image_processor.size = updated_size
-            return
-
-        if size is not None:
-            if script_args.min_pixels is not None and hasattr(size, "shortest_edge"):
-                size.shortest_edge = script_args.min_pixels
-            if script_args.max_pixels is not None and hasattr(size, "longest_edge"):
-                size.longest_edge = script_args.max_pixels
 
     def _prepare_inputs(self, inputs):
         # The prepared dataloader already places tensors on device. The ragged
@@ -758,12 +775,38 @@ class XiaomiLensTrainer(Trainer):
         logger.info("Saving model checkpoint to %s", output_dir)
 
         unwrapped_model = self.accelerator.unwrap_model(self.model, keep_torch_compile=False)
+        save_kwargs = (
+            {"save_embedding_layers": False} if self.model_args.use_lora
+            else {"max_shard_size": self.args.save_max_shard_size}
+        )
         unwrapped_model.save_pretrained(
             output_dir,
             state_dict=state_dict,
             safe_serialization=self.args.save_safetensors,
-            max_shard_size=self.args.save_max_shard_size,
+            **save_kwargs,
         )
         if self.processing_class is not None:
             self.processing_class.save_pretrained(output_dir)
         torch.save(self.args, os.path.join(output_dir, TRAINING_ARGS_NAME))
+
+    def _load_from_checkpoint(self, resume_from_checkpoint, model=None):
+        if self.model_args.use_lora:
+            from peft import LoraConfig
+
+            current = self.model.peft_config["default"]
+            saved = LoraConfig.from_pretrained(resume_from_checkpoint)
+            fields = (
+                "target_modules", "modules_to_save", "r", "lora_alpha", "lora_dropout",
+            )
+            mismatches = [name for name in fields if getattr(current, name) != getattr(saved, name)]
+            if mismatches:
+                raise ValueError(f"LoRA resume configuration differs in {', '.join(mismatches)}.")
+            if (current.base_model_name_or_path, current.revision) != (saved.base_model_name_or_path, saved.revision):
+                logger.warning(
+                    "LoRA resume base changed from %r (revision %r) to %r (revision %r). "
+                    "Resume with the same base weights. Use --model_revision to select the original Hub revision.",
+                    saved.base_model_name_or_path, saved.revision, current.base_model_name_or_path, current.revision,
+                )
+        elif (Path(resume_from_checkpoint) / ADAPTER_CONFIG_NAME).is_file():
+            raise ValueError("Resume a LoRA checkpoint with --use_lora and the original base model.")
+        return super()._load_from_checkpoint(resume_from_checkpoint, model=model)

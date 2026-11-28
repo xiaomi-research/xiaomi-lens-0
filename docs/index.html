@@ -213,6 +213,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .training .eyebrow { color: #ffb27a; }
 .training h3 { font-size: 34px; font-weight: 500; margin-top: 12px; }
 .training p { color: #d5e7ef; }
+.training p a { text-decoration: underline; text-underline-offset: 3px; }
 .training > div > p { margin-top: 14px; }
 .stages { list-style: none; padding: 0; margin: 26px 0 0; display: grid; gap: 18px; }
 .stages li { padding-left: 18px; border-left: 2px solid #6a8aa5; }
@@ -535,7 +536,7 @@ footer { border-top: 2px solid #1e34501a; padding-block: 48px 56px; }
         <p>Mask tokens placed inside the reasoning trace decode to masks for the regions it discusses. Grounded reasoning traces supervise these intermediate regions.</p>
       </li>
     </ol>
-    <div class="training">
+    <div class="training" id="training">
       <div>
         <p class="eyebrow">Training recipe</p>
         <h3>Two stages.</h3>
@@ -544,6 +545,7 @@ footer { border-top: 2px solid #1e34501a; padding-block: 48px 56px; }
           <li><h4>Stage 1 · Mask decoder pretraining</h4><p>With the MLLM backbone frozen, the decoder learns to read spatial information from fixed pre-merge features.</p></li>
           <li><h4>Stage 2 · Supervised fine-tuning</h4><p>The backbone is unfrozen and trained jointly with the decoder, so mask supervision updates the shared visual features alongside next-token supervision.</p></li>
         </ol>
+        <p><a href="https://github.com/xiaomi-research/xiaomi-lens-0#fine-tune-the-released-checkpoint">Fine-tune the released checkpoint</a> on your own data with full fine-tuning or LoRA.</p>
       </div>
       <figure class="figure-card">
         <img src="assets/figures/training_recipe.png" width="2000" height="526" loading="lazy" alt="Donut charts of public and in-house training data for Stage 1 and Stage 2, with per-dataset sample counts.">

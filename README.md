@@ -26,6 +26,7 @@ https://github.com/user-attachments/assets/52a37628-4d0e-4dc0-b82c-850e792b0ceb
 
 ## 📰 News
 
+- **[2026.11.28]** Fine-tune the released Xiaomi-Lens-0 weights on your own data with full-parameter training or LoRA. See the [fine-tuning guide](#fine-tune-the-released-checkpoint) for training and adapter export.
 - **[2026.10.22]** The Xiaomi-Lens-0 [training code](src/xiaomi_lens/train/) is now open source, including both training stages, launch scripts, and example data. See [Training](#training) to get started.
 - **[2026.10.20]** The [Xiaomi-Lens-0 online demo](https://huggingface.co/spaces/SeerRay-Lab/xiaomi-lens-0) is now live on Hugging Face Spaces.
 - **[2026.10.19]** The [Xiaomi-Lens-0](https://huggingface.co/xiaomi-research/Xiaomi-Lens-0) model weights and the [LensBench](https://huggingface.co/datasets/SeerRay-Lab/LensBench) benchmark dataset are now publicly available on Hugging Face.
@@ -322,6 +323,36 @@ python eval/run.py --backend vllm --vllm-text-device cuda:0 --vllm-mask-device c
 Results are written to `metrics.json` (Prec@0.5, cIoU and gIoU, overall and per domain, explicitness and cardinality) and per-sample predictions to `predictions.jsonl`. Add `--resume` to continue an interrupted run and `--limit N` for a quick check.
 
 ### Training
+
+#### Fine-tune the released checkpoint
+
+Start with `xiaomi-research/Xiaomi-Lens-0` or a downloaded copy. The checkpoint already includes the trained mask decoder and `<|mask|>` token. Prepare a YAML manifest for your JSONL data using the [training data format](examples/train/README.md). The examples below use the repository's sample manifest for two steps on a CUDA GPU. For your own run, replace `DATA_CONFIG` and set `--num_train_epochs` in place of `--max_steps 2`.
+
+```bash
+pip install -e ".[train]"
+DATA_CONFIG=examples/train/sample/sample.yaml
+
+# Full fine-tuning with DeepSpeed ZeRO-2
+DATA_CONFIG="$DATA_CONFIG" bash scripts/finetune.sh full --max_steps 2 --save_steps 2 --max_pixels 262144
+
+# LoRA on the language layers plus full training of the mask decoder
+pip install -e ".[train,lora]"
+DATA_CONFIG="$DATA_CONFIG" bash scripts/finetune.sh lora --max_steps 2 --save_steps 2 --max_pixels 262144
+
+# Export the adapter and updated mask decoder as a complete checkpoint
+python tools/merge_lora.py --adapter-path checkpoints/lens-lora \
+  --output-dir checkpoints/lens-lora-merged
+```
+
+The launcher caps training images at 4,194,304 pixels per image by default. The smoke tests above lower that cap to 262,144. `--min_pixels` defaults to the base processor's minimum. These training options and `--model_max_length` apply only to batches, and exported models inherit the base processor settings.
+
+Set `MODEL_PATH` for a local checkpoint and `NPROC_PER_NODE` for the GPU count. LoRA uses DDP across GPUs. It targets all linear projections in the language layers, including the narrow `in_proj_a` and `in_proj_b` gates. A rank at or above the gate output size can cost more parameters than a full gate matrix. The defaults are rank 16, alpha 32 and dropout 0.05. Override them with `--lora_r`, `--lora_alpha` and `--lora_dropout`. Set `--mask_loss_weight -1` to freeze the mask decoder and train only the adapters.
+
+To resume, repeat the training arguments and pass `--resume_from_checkpoint` with a checkpoint directory such as `checkpoints/lens-lora/checkpoint-2`. The same base weights can be loaded from a different path. For a Hub model, use `--model_revision` with the original commit recorded in `adapter_config.json`. Set `OUTPUT_DIR` to a fresh directory for each new experiment.
+
+The merge command uses the base model recorded in the adapter. Pass `--base-model` with a Hub model ID or local directory pointing to the same base weights if the source has moved. Use `checkpoints/lens-full` or `checkpoints/lens-lora-merged` with `infer.py --checkpoint`, `eval/run.py --model-path` or the vLLM servers.
+
+#### Reproduce the original two-stage training
 
 Training starts from Qwen3.5 in two stages. Stage 1 trains the mask decoder and the `<|mask|>` embedding with mask loss alone, keeping the rest of the model frozen. Stage 2 fine-tunes all parameters with the LM loss plus the mask loss (dice + BCE). The launchers use DeepSpeed (ZeRO-1 for Stage 1, ZeRO-2 for Stage 2) and expect CUDA GPUs.
 
